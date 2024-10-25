@@ -59,13 +59,48 @@ func SignUpHandler (w http.ResponseWriter, r *http.Request){
 }
 
 
+// Singin Route
+func SignInHandler(w http.ResponseWriter, r *http.Request){
+	w.Header().Set("Content-Type","application/json")
 
-
-
-
-
-
-
-
-
-
+	// Only allow post method requests
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		json.NewEncoder(w).Encode("Invalid Request Method")
+		return
+	}
+	
+	// Store r.body into varible user 
+	var user models.User
+	json.NewDecoder(r.Body).Decode(&user)
+	
+	// Check for valid email and password
+	if user.Email == "" || user.Password == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		response := map[string]string{"error":"Please enter email and password"}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+	
+	// Check if user exist with the given email
+	userDetails,userExists := db.Users[user.Email];
+	
+	if  !userExists {
+		w.WriteHeader(http.StatusNotFound)
+		response := map[string]string{"error":"User does not exist"}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+	
+	// Verify email and password
+	if userDetails.Password != user.Password {
+		w.WriteHeader(http.StatusUnauthorized)
+		response := map[string]string{"error":"Email and password does not match"}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+	
+	response := map[string]string{"message":"Login successfully"}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+}

@@ -9,7 +9,7 @@ import (
 
 func main (){
 	http.HandleFunc("/signup", handlers.SignUpHandler)	
-	// http.HandleFunc("/signin", handlers.SignInHandler)	
+	http.HandleFunc("/signin", handlers.SignInHandler)	
 
 	fmt.Println("Server running on port 8080")
 	http.ListenAndServe(":8080", nil) 
