@@ -5,18 +5,25 @@ import (
 	"net/http"
 
 	"github.com/developer-abhay/probo-golang/app/db"
+	"github.com/developer-abhay/probo-golang/app/middleware"
 	"github.com/developer-abhay/probo-golang/app/models"
+	"github.com/go-chi/chi/v5"
+	chimiddle "github.com/go-chi/chi/v5/middleware"
 )
 
-// Signup Route
-func SignUpHandler (w http.ResponseWriter, r *http.Request){
-	w.Header().Set("Content-Type", "application/json")
-	if r.Method != http.MethodPost{
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		json.NewEncoder(w).Encode("Invalid Request Method")
-		return
-	}
 
+
+func Handler(r *chi.Mux){
+	r.Use(chimiddle.StripSlashes) 
+	
+	r.Post("/signup",signUpHandler)
+	r.With(middleware.Auth).Post("/signin",signInHandler)
+}
+
+// Signup Route
+func signUpHandler (w http.ResponseWriter, r *http.Request){
+	w.Header().Set("Content-Type", "application/json")
+	
 	// Decode r.body and store in new user
 	var newUser models.User
 	json.NewDecoder(r.Body).Decode(&newUser)
@@ -60,15 +67,8 @@ func SignUpHandler (w http.ResponseWriter, r *http.Request){
 
 
 // Singin Route
-func SignInHandler(w http.ResponseWriter, r *http.Request){
+func signInHandler(w http.ResponseWriter, r *http.Request){
 	w.Header().Set("Content-Type","application/json")
-
-	// Only allow post method requests
-	if r.Method != http.MethodPost {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		json.NewEncoder(w).Encode("Invalid Request Method")
-		return
-	}
 	
 	// Store r.body into varible user 
 	var user models.User
